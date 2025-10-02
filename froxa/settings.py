@@ -33,13 +33,7 @@ INSTALLED_APPS = [
     # 'django.contrib.staticfiles',
     'corsheaders',
     'zzircon',
-    'calidad',
-    'produccion',
-    'finanzas',
     'froxa',
-    'logistica',
-    'compras',
-    'powerbi'
 ]
 
 MIDDLEWARE = [
@@ -76,9 +70,10 @@ WSGI_APPLICATION = 'froxa.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-db_config = load_app_config()
+# db_config = load_app_config()
+db_config = False
 
-if db_config:
+if db_config and False:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -90,7 +85,6 @@ if db_config:
         }
     }
 else:
-    SuzdalLogger("⚠️ No se cargó la configuración de base de datos. Usando SQLite por defecto.")
     print("⚠️ No se cargó la configuración de base de datos. Usando SQLite por defecto.")
     DATABASES = {
         'default': {
