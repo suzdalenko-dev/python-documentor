@@ -10,7 +10,7 @@ import threading
 import queue
 
 class SuzdalLogger:
-    LOG_DIR = "/var/log/froxa"
+    LOG_DIR = "/var/log/doc"
     LOG_FILE = os.path.join(LOG_DIR, "app.log")
     SEMANA_FILE = os.path.join(LOG_DIR, "semana.log")
 
