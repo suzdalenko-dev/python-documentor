@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import JsonResponse
-from mainapp.controllers.login_controller import login_function
+from mainapp.controllers.login_controller import login_switcher
 from documentor.documentor_controllers.default_controller import documentor_switcher
 
 def api_test(request):
@@ -10,7 +10,7 @@ def api_test(request):
 
 urlpatterns = [
     path('documentor/<str:entity>/<str:code>/<str:description>/', documentor_switcher),
-    path('mainapp/login/', login_function),
+    path('mainapp/<str:route_name>/', login_switcher),
 
 
 ]

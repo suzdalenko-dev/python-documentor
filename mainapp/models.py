@@ -2,9 +2,13 @@ from django.db import models
 
 class Users(models.Model):
     name        = models.TextField(null=True)
+    email       = models.TextField(null=True)
     password    = models.TextField(null=True)
+    email_code  = models.TextField(null=True)
+
     role        = models.TextField(null=True)
     permissions = models.TextField(null=True)
+    department  = models.TextField(null=True)
 
     first_visit = models.TextField(null=True)
     last_visit  = models.TextField(null=True)
@@ -12,6 +16,7 @@ class Users(models.Model):
     ip          = models.TextField(null=True)
 
     action_pass = models.TextField(null=True)
+
 
 
 
