@@ -8,7 +8,7 @@ class Documents(models.Model):
     user_name           = models.TextField(null=True)
     created_at          = models.TextField(null=True)
     updated_at          = models.TextField(null=True)
-    department_id       = models.TextField(null=True)
+    department_id       = models.IntegerField(null=True)
     expiration_date     = models.TextField(null=True)
     notification_emails = models.TextField(null=True)
     file_name           = models.TextField(null=True)
@@ -18,14 +18,14 @@ class Documents(models.Model):
 class Tag(models.Model):
     id        = models.BigAutoField(primary_key=True)
     name      = models.TextField(null=True)
-    user_id   = models.BigIntegerField(null=True)
+    user_id   = models.IntegerField(null=True)
     user_name = models.TextField(null=True)
 
 
 class Document_Tags(models.Model):
     id          = models.BigAutoField(primary_key=True)
-    document_id = models.BigIntegerField(null=True)
-    tag_id      = models.BigIntegerField(null=True)
+    document_id = models.IntegerField(null=True)
+    tag_id      = models.IntegerField(null=True)
     tag_name    = models.TextField(null=True)
 
 
@@ -36,8 +36,8 @@ class Departments(models.Model):
 
 class Users_Departments(models.Model):
     id              = models.BigAutoField(primary_key=True)
-    user_id         = models.BigIntegerField(null=True)
+    user_id         = models.IntegerField(null=True)
     user_name       = models.TextField(null=True)
-    department_id   = models.BigIntegerField(null=True)
+    department_id   = models.IntegerField(null=True)
     department_name = models.TextField(null=True)
     
