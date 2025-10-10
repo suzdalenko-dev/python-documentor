@@ -36,15 +36,15 @@ def login(request):
             # I am sending the email code from frontend
             # tiempo expiracion 1 dia
             if len(str(email_code)) > 1 and email_code != user.email_code:
-                return {'id': user.id, 'aviso': 'codigo-incorrecto'} 
+                return {'user_id': user.id, 'aviso': 'codigo-incorrecto'} 
             
             if len(str(email_code)) > 1 and email_code == user.email_code:
                 jwtm = JWTManager()
-                payload = {"id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass}
+                payload = {"user_id": user.id, "username": user.name, "department_id": user.department_id, "department_name": user.department_name}
                 token = jwtm.encode(payload, days=1) 
                 user.email_code = '*'
                 user.save()
-                return {"id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, "token": token, 'aviso': 'codigo-correcto'}
+                return {"user_id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, "token": token, 'aviso': 'codigo-correcto'}
           
 
             # user is login, next step send email code
@@ -52,7 +52,7 @@ def login(request):
             user.email_code  = email_code 
             SMailer.send_email([user.email],'Código login DOCUMENTOR', 'Código login DOCUMENTOR '+email_code, None)
             user.save()
-            return {"id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, 'aviso': 'credenciales-correctos'}
+            return {"user_id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, 'aviso': 'credenciales-correctos'}
     
         return {}
 
@@ -78,11 +78,37 @@ def token_role_permissions(request):
         if not ok or payload is None:
             return {"status": 200, "message": "Token inválido o expirado", "token": "no"}
 
-        id = payload.get("id")
+        id = payload.get("user_id")
         user = Users.objects.filter(id=id).first()
 
-        return {"token": "ok", "message": "Token valido", "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, "id": user.id}
+        return {"token": "ok", "message": "Token valido", "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, "user_id": user.id}
         
 
     except Exception as e:
         return {"status": 500, "message": "Error al verificar token"+str(e), "token": "no"}
+    
+
+
+
+
+def check_user_request(request):
+    """
+    Extrae el token JWT del header Authorization, lo valida,
+    y devuelve True si es correcto, False en caso contrario.
+    """
+    try:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return False, None
+
+        token = auth_header.split(" ")[1].strip()
+        jwtm  = JWTManager()
+        ok, payload = jwtm.decode(token)
+
+        if not ok or payload is None:
+            return False, None
+
+        return True, payload
+
+    except Exception as e:
+        return False, None

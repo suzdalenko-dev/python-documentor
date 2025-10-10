@@ -2,6 +2,7 @@ from datetime import datetime, date
 from pathlib import Path
 import json
 import os
+import re
 from django.forms import model_to_dict
 import calendar
 from urllib.parse import urljoin
@@ -18,6 +19,16 @@ def get_short_date():
     now = datetime.now()
     formatted = now.strftime("%Y-%m-%d")
     return formatted
+
+def get_current_year():
+    now = datetime.now()
+    year = now.strftime("%Y")
+    return year
+
+def get_current_month():
+    now = datetime.now()
+    month = now.strftime("%m")
+    return month
 
 
 def json_encode_one(oneObject):
@@ -143,3 +154,16 @@ def delete_excel_reports(folder_name: str, pattern: str = "*"):
 
 
 
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Limpia el nombre de archivo permitiendo solo letras, números, guiones y un punto.
+    """
+    filename = filename.strip().lower()  
+    name, ext = os.path.splitext(filename)
+    name = re.sub(r'[^a-z0-9\-_]+', '', name)
+    ext = re.sub(r'[^.a-z0-9]', '', ext)
+    if not name:
+        name = 'documento'
+    sanitized = f"{name}{ext}"
+    return sanitized
