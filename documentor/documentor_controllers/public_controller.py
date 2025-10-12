@@ -1,7 +1,7 @@
 
 from django.http import JsonResponse
-from documentor.dom_repo.doc_public import all_doc
-from documentor.dom_repo.tags_functions import all_tags
+from documentor.dom_repo.pb_doc_public import all_doc
+from documentor.dom_repo.pb_tags_functions import get_my_tags, get_tags_dep
 from mainapp.utils.utilities.suzdal_logger import SuzdalLogger
 
 
@@ -13,7 +13,9 @@ def public_switcher(request, entity, code, description):
     description = str(description).strip().lower()
 
     switch_query = {
-        'all_tags': lambda: all_tags(request),                  # http://127.0.0.1:8000/public/tag/get/all_tags/
+        'get_my_tags': lambda: get_my_tags(request),                  # http://127.0.0.1:8000/public/tag/get/all_tags/
+        'get_tags_dep': lambda: get_tags_dep(request),          # http://127.0.0.1:8000/public/tag/get/get_tags_dep/
+
         'all_doc': lambda: all_doc(request),                    # http://127.0.0.1:8000/public/doc/get/all_doc/
 
 

@@ -56,31 +56,7 @@ def delete_tag(request, payload):
 
 
 
-def all_tags(request):
-    out    = []
-    users_table =  Users.objects.values('department_id', 'department_name', 'id', 'name').order_by('department_id')
-    dep_id = []
 
-    for dep in users_table:
-        if dep['department_id'] not in dep_id:
-            dep_id += [dep['department_id']]
-            out    += [{'department_id': dep['department_id'], 'name': dep['department_name'], 'users': [], 'tags': []}]
-
-    users_departaments = Users_Departments.objects.values('user_id', 'user_name', 'department_id', 'department_name')
-    tags               = Tag.objects.filter().values("department_id", "id", "name").order_by("name")
-
-    for o in out:
-        for dep in users_table:
-            if o['department_id'] == dep['department_id']:
-                o['users'] += [{'id': dep['id'], 'name': dep['name']}]
-        for ud in users_departaments:
-            if ud['department_id'] == o['department_id']:
-                o['users'] += [{'id': ud['user_id'], 'name': ud['user_name']}]
-        for t in tags:
-            if o['department_id'] == t['department_id']:
-                o['tags'] += [{'id': t['id'], 'name': t['name']}]
-
-    return out
 
 
 
@@ -89,3 +65,8 @@ def get_department_tags(request, payload):
     department_id = payload.get("department_id")
     tags          = Tag.objects.filter(department_id=department_id).values("id", "name").order_by("name") or []
     return list(tags)
+
+
+
+def get_tags_dep(request):
+    return 'ok'

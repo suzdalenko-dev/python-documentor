@@ -86,7 +86,7 @@ def all_doc(request):
     sql1 = ""
     sql2 = ""
     with connection.cursor() as cursor:
-        # 🧮 1️⃣ Total de documentos filtrados
+        # 🧮 1️⃣ Numero total de documentos filtrados
         sql1 = f"""
             SELECT COUNT(*)
             FROM documentor_documents dd2
@@ -101,26 +101,7 @@ def all_doc(request):
         cursor.execute(sql1, params_count)
         total_count = cursor.fetchone()[0]
 
-        # 🏷️ 2️⃣ Traer solo etiquetas en uso por los documentos filtrados
-        cursor.execute(f"""SELECT DISTINCT dt.tag_id, dt.tag_name
-            FROM documentor_document_tags dt
-            WHERE dt.document_id IN (
-                SELECT dd2.id
-                FROM documentor_documents dd2
-                WHERE (dd2.department_id IN (
-                            SELECT mau.department_id FROM mainapp_users mau WHERE mau.id = %s
-                        )
-                        OR dd2.department_id IN (
-                            SELECT ud.department_id FROM documentor_users_departments ud WHERE ud.user_id = %s
-                        ))
-                {text_filter_count}
-            )
-            ORDER BY LOWER(dt.tag_name) ASC
-        """, params_count)
-        tags_rows = cursor.fetchall()
-        tags_in_use = [{"id": row[0], "name": row[1]} for row in tags_rows]
-
-        # 📄 3️⃣ Documentos paginados con etiquetas
+        # 📄 2️⃣ Documentos paginados con etiquetas
         sql2 = f"""SELECT
                 (SELECT GROUP_CONCAT(dt.tag_name, ', ')
                  FROM documentor_document_tags dt
@@ -158,7 +139,6 @@ def all_doc(request):
         'has_prev': number_page > 1,
         'has_next': number_page < total_pages,
         'docs': docs,
-        'tags_in_use': tags_in_use, 
         'sql1': sql1,
         'sql2': sql2,
     }
