@@ -4,7 +4,7 @@ from django.db import connection
 def all_doc(request):
     # Parámetros
     number_page  = int(request.GET.get('number_page', 1) or 1)
-    doc_per_page = 22
+    doc_per_page = 3
     user_id      = int(request.GET.get('user_id', 0) or 0)
     filter_text  = str(request.GET.get('filter_text', '') or '').strip().lower()
 
@@ -70,18 +70,30 @@ def all_doc(request):
     # 🔹 Filtro por etiquetas (si hay tag_ids)
     if tag_ids:
         placeholders = ", ".join(["%s"] * len(tag_ids))
+        tag_count = len(tag_ids)
+
         text_filter_count += f"""
             AND dd2.id IN (
-                SELECT document_id FROM documentor_document_tags WHERE tag_id IN ({placeholders})
+                SELECT document_id
+                FROM documentor_document_tags
+                WHERE tag_id IN ({placeholders})
+                GROUP BY document_id
+                HAVING COUNT(DISTINCT tag_id) = {tag_count}
             )
         """
+
         text_filter_docs += f"""
             AND dd.id IN (
-                SELECT document_id FROM documentor_document_tags WHERE tag_id IN ({placeholders})
+                SELECT document_id
+                FROM documentor_document_tags
+                WHERE tag_id IN ({placeholders})
+                GROUP BY document_id
+                HAVING COUNT(DISTINCT tag_id) = {tag_count}
             )
         """
-        params_count += tag_ids
-        params_docs  += tag_ids
+
+    params_count += tag_ids
+    params_docs  += tag_ids
 
     sql1 = ""
     sql2 = ""
