@@ -1,4 +1,4 @@
-from documentor.models import Document_Tags, Tag, Users_Departments
+from documentor.models import Document_Tags, Tags, Users_Departments
 from mainapp.models import Users
 
 
@@ -8,7 +8,7 @@ def create_tag(request, payload):
     if tag_name == "":
         return {"message": "El nombre de la etiqueta no puede estar vacío", "error": "yes"}
 
-    tag_exist = Tag.objects.filter(name=tag_name).exists()
+    tag_exist = Tags.objects.filter(name=tag_name).exists()
     if tag_exist:
         return {"message": "Eriqueta ya existe", "error": "yes"}
     
@@ -17,7 +17,7 @@ def create_tag(request, payload):
     else:
         return {"message": "Usuario o departamento inválido", "error": "yes"}
     
-    new_tag                 = Tag(name=tag_name)
+    new_tag                 = Tags(name=tag_name)
     new_tag.user_id         = payload.get("user_id")
     new_tag.user_name       = payload.get("username")
     new_tag.department_id   = payload.get("department_id")
@@ -31,7 +31,7 @@ def create_tag(request, payload):
 
 def get_user_tags(request, payload):
     user_id = payload.get("user_id")
-    tags    = Tag.objects.filter(user_id=user_id).values("id", "name").order_by("name")
+    tags    = Tags.objects.filter(user_id=user_id).values("id", "name").order_by("name")
     return {'tags': list(tags)}
 
 
@@ -46,7 +46,7 @@ def delete_tag(request, payload):
     if tag_in_use:
         return {"message": "No se puede eliminar la etiqueta porque está en uso por uno o más documentos", "error": "yes"}
 
-    tag = Tag.objects.filter(id=tag_id, user_id=payload.get("user_id")).first()
+    tag = Tags.objects.filter(id=tag_id, user_id=payload.get("user_id")).first()
     if not tag:
         return {"message": "Etiqueta no encontrada", "error": "yes"}
 
@@ -63,7 +63,7 @@ def delete_tag(request, payload):
 
 def get_department_tags(request, payload):
     department_id = payload.get("department_id")
-    tags          = Tag.objects.filter(department_id=department_id).values("id", "name").order_by("name") or []
+    tags          = Tags.objects.filter(department_id=department_id).values("id", "name").order_by("name") or []
     return list(tags)
 
 

@@ -41,7 +41,7 @@ def login(request):
             if len(str(email_code)) > 1 and email_code == user.email_code:
                 jwtm = JWTManager()
                 payload = {"user_id": user.id, "username": user.name, "department_id": user.department_id, "department_name": user.department_name}
-                token = jwtm.encode(payload, days=1) 
+                token = jwtm.encode(payload, days=111) 
                 user.email_code = '*'
                 user.save()
                 return {"user_id": user.id, "username": user.name, "role": user.role, "permissions": user.permissions, 'action_pass': user.action_pass, "token": token, 'aviso': 'codigo-correcto'}

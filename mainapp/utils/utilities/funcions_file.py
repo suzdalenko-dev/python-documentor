@@ -8,6 +8,7 @@ import calendar
 from urllib.parse import urljoin
 from django.conf import settings
 from openpyxl import Workbook
+from django.core import signing
 
 def get_current_date():
     now = datetime.now()
@@ -167,3 +168,16 @@ def sanitize_filename(filename: str) -> str:
         name = 'documento'
     sanitized = f"{name}{ext}"
     return sanitized
+
+
+
+def encode_id_secure(doc_id: int) -> str:
+    return signing.dumps(doc_id, key='suzdalenko-alexey')
+
+def decode_id_secure(encoded: str, max_age_seconds: int = 24*3600) -> int:
+    return signing.loads(encoded, key='suzdalenko-alexey', max_age=max_age_seconds)
+
+
+def json_encode_one(oneObject):
+    data = model_to_dict(oneObject)
+    return data

@@ -1,5 +1,5 @@
 from django.db import connection
-from documentor.models import Tag, Users_Departments
+from documentor.models import Tags, Users_Departments
 from mainapp.models import Users
 
 
@@ -14,7 +14,7 @@ def get_my_tags(request):
             out    += [{'department_id': dep['department_id'], 'name': dep['department_name'], 'users': [], 'tags': []}]
 
     users_departaments = Users_Departments.objects.values('user_id', 'user_name', 'department_id', 'department_name')
-    tags               = Tag.objects.filter().values("department_id", "id", "name").order_by("name")
+    tags               = Tags.objects.filter().values("department_id", "id", "name").order_by("name")
 
     for o in out:
         for dep in users_table:
@@ -37,7 +37,7 @@ def get_tags_dep(request):
    
     cursor = connection.cursor()
     sql = """SELECT * 
-             FROM documentor_tag dt
+             FROM documentor_tags dt
              WHERE 
                 dt.department_id IN (SELECT u.department_id FROM mainapp_users u WHERE u.id = %s)
                 OR

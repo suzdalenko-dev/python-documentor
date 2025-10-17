@@ -1,10 +1,12 @@
 from math import ceil
 from django.db import connection
 
+from mainapp.utils.utilities.funcions_file import encode_id_secure
+
 def all_doc(request):
     # Parámetros
     number_page  = int(request.GET.get('number_page', 1) or 1)
-    doc_per_page = 3
+    doc_per_page = 22
     user_id      = int(request.GET.get('user_id', 0) or 0)
     filter_text  = str(request.GET.get('filter_text', '') or '').strip().lower()
 
@@ -121,8 +123,7 @@ def all_doc(request):
                 ) AS tags,
                 dd.id, dd.title, dd.descrption, dd.user_id, dd.user_name,
                 dd.department_id, dd.department_name, dd.created_at, dd.updated_at,
-                dd.expiration_date, dd.notification_emails, dd.file_name,
-                dd.file_path, dd.file_size_mb
+                dd.expiration_date, dd.notification_emails
             FROM documentor_documents dd
             WHERE (dd.department_id IN (
                         SELECT mau.department_id FROM mainapp_users mau WHERE mau.id = %s
@@ -141,6 +142,10 @@ def all_doc(request):
 
     # 🔹 Convertir filas a lista de diccionarios
     docs = [dict(zip(columns, row)) for row in rows]
+    # 🔹 Añadir campo 'code' con id codificado
+    # for d in docs:
+    #     d["code"] = encode_id_secure(d["id"])
+    
     total_pages = ceil(total_count / doc_per_page) if total_count else 1
 
     # 🔹 Resultado final
