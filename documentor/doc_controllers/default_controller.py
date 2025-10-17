@@ -1,6 +1,6 @@
 
 from django.http import JsonResponse
-from documentor.dom_repo.doc_functions import create_new_doc
+from documentor.dom_repo.doc_functions import create_new_doc, update_old_doc
 from documentor.dom_repo.tags_functions import create_tag, delete_tag, get_department_tags, get_user_tags
 from documentor.dom_repo.user_functions import get_user_email
 from mainapp.repostory.login_file import check_user_request
@@ -29,6 +29,7 @@ def documentor_switcher(request, entity, code, description):
 
 
         'create_new_doc': lambda: create_new_doc(request, payload),
+        'update_old_doc': lambda: update_old_doc(request, payload),
     }
 
     try:

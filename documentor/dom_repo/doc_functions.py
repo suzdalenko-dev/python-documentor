@@ -3,8 +3,9 @@ import os
 from documentor.models import Document_Tags, Documents, Documents_Lines, Tags, Users_Departments
 from mainapp.models import Users
 from mainapp.utils.utilities.funcions_file import encode_id_secure, get_current_date, get_current_month, get_current_year, get_short_date, json_encode_one, sanitize_filename
+from django.db import transaction
 
-
+@transaction.atomic
 def create_new_doc(request, payload):
     if request.method != 'POST':
         return {'error': 'yes', 'message': 'Método no permitido'}
@@ -81,6 +82,7 @@ def create_new_doc(request, payload):
 
 def doc_by_id(request):
     # verify that the document belongs to the user's departamentes
+    # Verificar que el documento pertenece al departamento del usuario.
     user_id = request.GET.get('user_id')
     doc_id  = request.GET.get('doc_id')
     
@@ -111,3 +113,84 @@ def doc_by_id(request):
 
     return {'doc': doc, 'doc_lines': doc_lines, 'doc_tags': list(tags), 'error': 'no'}
 
+
+
+
+@transaction.atomic
+def update_old_doc(request, payload):
+    if request.method != 'POST':
+        return {'error': 'yes', 'message': 'Método no permitido'}
+
+    try:
+        doc_id          = request.POST.get('doc_id')
+        title           = request.POST.get('title')
+        description     = request.POST.get('description')
+        expiration_date = request.POST.get('expiration_date')
+        email_aviso     = request.POST.get('email_aviso')
+        tags            = request.POST.get('tags', '')
+        files           = request.FILES.getlist('files')
+
+        # Validación mínima
+        if not doc_id or not title or not expiration_date or not email_aviso:
+            return {'error': 'yes', 'message': 'Faltan datos obligatorios'}
+
+        # Verificar que el documento existe
+        doc = Documents.objects.filter(id=doc_id).first()
+        if not doc:
+            return {'error': 'yes', 'message': f'Documento {doc_id} no encontrado'}
+
+        # Actualizar campos básicos
+        doc.title               = title
+        doc.descrption          = description
+        doc.expiration_date     = expiration_date
+        doc.notification_emails = email_aviso
+        doc.updated_at          = get_current_date()
+        doc.save()
+
+        # Si vienen nuevos archivos, procesarlos
+        if files:
+            user_name_value = payload.get('username', 'unknown')
+            base_folder = 'media/docs/'+user_name_value+'/'+get_current_year()+'/'+get_current_month()
+            os.makedirs(base_folder, exist_ok=True)
+
+            for file in files:
+                cleaned_name = sanitize_filename(file.name)
+                file_path    = base_folder+'/'+cleaned_name
+
+                # 🔹 Buscar si ya existe una línea con ese archivo (mismo nombre)
+                existing_line = Documents_Lines.objects.filter(document_id=doc.id, file_name=cleaned_name).first()
+
+                # Si existe en la misma carpeta (mismo mes/año) → sobrescribir
+                if existing_line and existing_line.file_path == base_folder:
+                    with open(file_path, 'wb+') as destination:
+                        for chunk in file.chunks():
+                            destination.write(chunk)
+
+                    existing_line.file_size_mb = round(file.size / (1024 * 1024), 1)
+                    existing_line.file_path = file_path
+                    existing_line.save()
+                else:
+                    # Crear una nueva línea
+                    with open(file_path, 'wb+') as destination:
+                        for chunk in file.chunks():
+                            destination.write(chunk)
+
+                    dc = Documents_Lines()
+                    dc.document_id = doc.id
+                    dc.file_name = cleaned_name
+                    dc.file_path = file_path
+                    dc.file_size_mb = round(file.size / (1024 * 1024), 1)
+                    dc.save()
+
+        # 🔹 Actualizar etiquetas
+        Document_Tags.objects.filter(document_id=doc.id).delete()
+        tag_ids = [int(t.strip()) for t in tags.split(',') if t.strip().isdigit()]
+        for tag_id in tag_ids:
+            tag = Tags.objects.filter(id=tag_id).first()
+            if tag:
+                Document_Tags.objects.create(document_id=doc.id, tag_id=tag.id, tag_name=tag.name)
+
+        return { 'error': 'no', 'message': 'Documento actualizado correctamente', 'id': doc.id}
+
+    except Exception as e:
+        return {'error': 'yes', 'message': f'Error al actualizar documento: {str(e)}'}
