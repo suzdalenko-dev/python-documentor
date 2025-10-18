@@ -22,6 +22,8 @@ class Documents_Lines(models.Model):
     file_name           = models.TextField(null=True)
     file_path           = models.TextField(null=True)
     file_size_mb        = models.FloatField(null=True)
+    department_id       = models.IntegerField(null=True, db_index=True)
+    user_id             = models.BigIntegerField(null=True, db_index=True)
     
 
 class Tags(models.Model):

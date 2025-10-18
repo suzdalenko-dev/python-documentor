@@ -35,7 +35,5 @@ class SMailer:
             except Exception as e:
                 message_information += [{'email': email_name, 'sent': 0, 'message': subject, 'file': str(file_path), 'error': str(e)}]
 
-        print(message_information)
-
         return message_information
 

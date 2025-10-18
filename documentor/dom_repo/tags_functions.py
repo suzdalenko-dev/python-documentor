@@ -6,11 +6,11 @@ def create_tag(request, payload):
     tag_name = request.POST.get("name", "").strip().lower()
 
     if tag_name == "":
-        return {"message": "El nombre de la etiqueta no puede estar vacío", "error": "yes"}
+        return {"message": "El nombre de la etiqueta no puede estar vacío..", "error": "yes"}
 
     tag_exist = Tags.objects.filter(name=tag_name).exists()
     if tag_exist:
-        return {"message": "Eriqueta ya existe", "error": "yes"}
+        return {"message": "Etiqueta ya existe en la aplicación, no se puede tener el mismo nombre de etiqueta varias veces..", "error": "yes"}
     
     if payload.get("user_id") > 0 and payload.get("department_id") > 0:
         pass

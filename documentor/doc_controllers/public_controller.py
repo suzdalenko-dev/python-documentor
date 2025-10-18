@@ -2,6 +2,7 @@
 from django.http import JsonResponse
 from documentor.dom_repo.doc_functions import doc_by_id
 from documentor.dom_repo.pb_doc_public import all_doc
+from documentor.dom_repo.pb_expied_functions import exp_doc
 from documentor.dom_repo.pb_tags_functions import get_my_tags, get_tags_dep
 from documentor.dom_repo.serve_doc_functions import serve_document
 from mainapp.utils.utilities.suzdal_logger import SuzdalLogger
@@ -26,7 +27,7 @@ def public_switcher(request, entity, code, description):
 
         'all_doc': lambda: all_doc(request),                        # http://127.0.0.1:8000/public/doc/get/all_doc/
         'doc_by_id': lambda: doc_by_id(request),                    # http://127.0.0.1:8000/public/doc/get/doc_by_id/
-
+        'exp_doc': lambda: exp_doc(request),                        # http://127.0.0.1:8000/public/doc/get/exp_doc/
     }
 
     try:

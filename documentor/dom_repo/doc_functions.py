@@ -30,10 +30,10 @@ def create_new_doc(request, payload):
         doc.notification_emails = email_aviso
         doc.created_at          = get_short_date()
         doc.updated_at          = ''
-        doc.user_id             = payload.get('user_id')
-        doc.user_name           = payload.get('username')
-        doc.department_id       = payload.get('department_id')
-        doc.department_name     = payload.get('department_name')
+        doc.user_id             = payload.get('user_id', 0)
+        doc.user_name           = payload.get('username', 'unknown')
+        doc.department_id       = payload.get('department_id', 'unknown dep')
+        doc.department_name     = payload.get('department_name', 'unknown name')
         doc.save()
 
         # Guardar archivo en sistema de archivos
@@ -53,6 +53,8 @@ def create_new_doc(request, payload):
             dc.document_id = doc.id
             dc.file_name=cleaned_name
             dc.file_path=file_path
+            dc.department_id = payload.get('department_id', 0)
+            dc.user_id       = payload.get('user_id', 0)
 
             if os.path.exists(file_path):  
                 size_mb = round(file.size / (1024 * 1024), 1)
@@ -93,8 +95,6 @@ def doc_by_id(request):
     user_deps  = list(user_deps)
     for ud in user_deps:
         USER_DEP_IN_USE += [ud['department_id']]
-
-    print(USER_DEP_IN_USE)
 
     doc = Documents.objects.get(id=doc_id)
     doc = json_encode_one(doc)
@@ -158,10 +158,10 @@ def update_old_doc(request, payload):
                 file_path    = base_folder+'/'+cleaned_name
 
                 # 🔹 Buscar si ya existe una línea con ese archivo (mismo nombre)
-                existing_line = Documents_Lines.objects.filter(document_id=doc.id, file_name=cleaned_name).first()
-
+                existing_line = Documents_Lines.objects.filter(document_id=doc.id, department_id=payload.get('department_id', 0), user_id=payload.get('user_id', 0), file_name=cleaned_name).first()
+               
                 # Si existe en la misma carpeta (mismo mes/año) → sobrescribir
-                if existing_line and existing_line.file_path == base_folder:
+                if existing_line and existing_line.file_path == file_path:
                     with open(file_path, 'wb+') as destination:
                         for chunk in file.chunks():
                             destination.write(chunk)
@@ -175,11 +175,13 @@ def update_old_doc(request, payload):
                         for chunk in file.chunks():
                             destination.write(chunk)
 
-                    dc = Documents_Lines()
-                    dc.document_id = doc.id
-                    dc.file_name = cleaned_name
-                    dc.file_path = file_path
-                    dc.file_size_mb = round(file.size / (1024 * 1024), 1)
+                    dc               = Documents_Lines()
+                    dc.document_id   = doc.id
+                    dc.file_name     = cleaned_name
+                    dc.file_path     = file_path
+                    dc.file_size_mb  = round(file.size / (1024 * 1024), 1)
+                    dc.department_id = payload.get('department_id', 0)
+                    dc.user_id       = payload.get('user_id', 0)
                     dc.save()
 
         # 🔹 Actualizar etiquetas
@@ -194,3 +196,34 @@ def update_old_doc(request, payload):
 
     except Exception as e:
         return {'error': 'yes', 'message': f'Error al actualizar documento: {str(e)}'}
+    
+
+
+
+def delete_doc_line(request, payload):
+    print(payload)
+    try:
+        line_id       = request.POST.get('line_id')
+        department_id = payload.get('department_id', 0)
+        user_id       = payload.get('user_id', 0)
+        
+        line      = Documents_Lines.objects.filter(id=line_id, department_id=department_id, user_id=user_id).first()
+        file_path = line.file_path
+
+        # 🔹 Eliminar archivo físico si existe
+        if file_path and os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                return {'error': 'yes', 'message': f'No se pudo eliminar el archivo físico: {str(e)}'}
+
+        # 🔹 Eliminar la línea de la base de datos
+        line.delete()
+        # 🔹 Verificar que realmente se eliminó
+        check_line = Documents_Lines.objects.filter(id=line_id).first()
+        if check_line:
+            return {'error': 'yes', 'message': 'No se pudo eliminar la línea de la base de datos'}
+
+        return {'error': 'no', 'message': 'Archivo y registro eliminados correctamente'}
+    except Exception as e:
+        return {'error': 'yes', 'message': f'Error al eliminar documento: {str(e)}'}
